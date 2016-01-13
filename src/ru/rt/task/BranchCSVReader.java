@@ -1,59 +1,46 @@
 package ru.rt.task;
 
-import java.io.BufferedReader;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.IOException;
+import org.apache.commons.csv.CSVFormat;
+import org.apache.commons.csv.CSVParser;
+import org.apache.commons.csv.CSVRecord;
+
+import java.io.*;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Class for convenient parsing CSV represented branch records
+ */
 public class BranchCSVReader {
-    public static final String SEP = ",";
+    public static final String CHARSET = "UTF-8";
 
     private String csvPath;
     private List<Branch> branchesList = new ArrayList<>();
 
+    /**
+     * Constructor
+     * @param csvPath Path of CSV file to parse into branch objects
+     */
     public BranchCSVReader(String csvPath) {
         this.csvPath = csvPath;
-        readBranches();
     }
 
-    private void readBranches() {
-        BufferedReader br = null;
-
-        try {
-            String line;
-            br = new BufferedReader(new FileReader(csvPath));
-            while ((line = br.readLine()) != null) {
-                String[] values = line.split(SEP);
-                Branch branch = new Branch();
-                branch.setId(values[0]);
-                branch.setParentId(values[1]);
-                branch.setName(cutQuotes(values[2]));
-                branch.setCode(cutQuotes(values[3]));
-                branchesList.add(branch);
-            }
-
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
-        } finally {
-            if (br != null) {
-                try {
-                    br.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
+    /**
+     * Parse dictionary CSV into branchesList
+     * @throws IOException
+     */
+    public void readBranches() throws IOException {
+        File csvData = new File(csvPath);
+        CSVParser parser = CSVParser.parse(csvData, Charset.forName(CHARSET), CSVFormat.RFC4180);
+        for (CSVRecord csvRecord : parser) {
+            Branch branch = new Branch();
+            branch.setId(csvRecord.get(0));
+            branch.setParentId(csvRecord.get(1));
+            branch.setName(csvRecord.get(2));
+            branch.setCode(csvRecord.get(3));
+            branchesList.add(branch);
         }
-    }
-
-    private String cutQuotes(String quotedString) {
-        if ((quotedString.charAt(0) == '"') && (quotedString.charAt(quotedString.length() - 1) == '"')) {
-            return quotedString.substring(1, quotedString.length() - 1);
-        }
-        return quotedString;
     }
 
     public List<Branch> getBranchesList() {

@@ -1,5 +1,8 @@
 package ru.rt.task;
 
+/**
+ * Class represents branch record
+ */
 public class Branch {
     private String id;
     private String parentId;
